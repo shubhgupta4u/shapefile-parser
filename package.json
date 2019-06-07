@@ -1,0 +1,37 @@
+{
+  "name": "shapefile-parser",
+  "version": "1.0.0",
+  "description": "A Node.js/Typescript module to generate a (.shp) shapefile or parse geometries data from the Shape file.",
+  "main": "shapefile-parser.js",
+  "types": "shapefile-parser.d.ts",
+  "scripts": {
+    "build": "tsc -p tsconfig.production.json",
+    "test": "mocha -r ts-node/register tests/**/*.test.ts",
+    "testWithCoverage": "nyc -r lcov -e .ts -x \"*.test.ts\" mocha -r ts-node/register tests/**/*.test.ts && nyc report"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/shubhgupta4u/shapefile-parser.git"
+  },
+  "keywords": [
+    "Shape File",
+    ".shp",
+    ".dbf"
+  ],
+  "author": "Shubh Gupta <shubhgupta4u@gmail.com> (https://uk.linkedin.com/in/shubh-gupta-63607313)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/shubhgupta4u/shapefile-parser/issues"
+  },
+  "homepage": "https://github.com/shubhgupta4u/shapefile-parser#readme",
+  "devDependencies": {
+    "@types/chai": "^4.1.7",
+    "@types/mocha": "^5.2.7",
+    "@types/node": "^12.0.7",
+    "chai": "^4.2.0",
+    "mocha": "^6.1.4",
+    "ts-node": "^8.2.0",
+    "typescript": "^3.5.1"
+  },
+  "dependencies": {}
+}
