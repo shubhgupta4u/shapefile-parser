@@ -6,41 +6,6 @@ npm install shapefile-parser --save
 yarn add shapefile-parser
 bower install shapefile-parser --save
 ```
-## Supported Shape File
-#### ShapeFile Extension
-```ShapeFile Extension
-*.shp: Supported
-*.dbf: Not Supported
-*.prj: Not Supported
-*.shx: Not Required, as reading geometries sequentially
-```
-## Supported Geometry Shape
-#### 2D Geometry Shape
-```2D geometry Shape
-NullShape: Supported
-Point: Supported
-PolyLine: Supported
-Polygon: Supported
-MultiPoint: Supported
-```
-#### 3D Geometry Shape
-```3D geometry Shape
-PointM: Supported
-PolyLineM: Supported
-PolygonM: Supported
-MultiPointM: Supported
-```
-#### 4D Geometry Shape
-```4D geometry Shape
-PointZ: Supported
-PolyLineZ: Not Supported
-PolygonZ: Not Supported
-MultiPointZ: Not Supported
-```
-#### Other Geometry Shape
-```Other geometry Shape
-MultiPatch: Not Supported
-```
 ## Usage 
 ### TypeScript
 #### Case 1:Reading shape file from local path 'D:\Workspace\tests\sampleShpFiles\sample2-line.shp'
@@ -138,6 +103,41 @@ Output should be an instance of ShapeFile class
 define(function(require,exports,module){
   var parser = require('shapefile-parser');
 });
+```
+## Supported Shape File
+#### ShapeFile Extension
+```ShapeFile Extension
+*.shp: Supported
+*.dbf: Not Supported
+*.prj: Not Supported
+*.shx: Not Required, as reading geometries sequentially
+```
+## Supported Geometry Shape
+#### 2D Geometry Shape
+```2D geometry Shape
+NullShape: Supported
+Point: Supported
+PolyLine: Supported
+Polygon: Supported
+MultiPoint: Supported
+```
+#### 3D Geometry Shape
+```3D geometry Shape
+PointM: Supported
+PolyLineM: Supported
+PolygonM: Supported
+MultiPointM: Supported
+```
+#### 4D Geometry Shape
+```4D geometry Shape
+PointZ: Supported
+PolyLineZ: Not Supported
+PolygonZ: Not Supported
+MultiPointZ: Not Supported
+```
+#### Other Geometry Shape
+```Other geometry Shape
+MultiPatch: Not Supported
 ```
 ### Support
 ```Bug or Suggestion Reporting
