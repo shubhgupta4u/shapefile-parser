@@ -1,4 +1,4 @@
-import { ShapeFileHeader, ShapeType, ShapeFile, Point, MultiPoint, Coordinate, PolyLine, Polygon, Part, NullShape } from "./models/shapefile";
+import { ShapeFileHeader, ShapeType, ShapeFile, Point, MultiPoint, Coordinate, PolyLine, Polygon, Part, NullShape, PointM, PointZ, PolyLineM, PartM, CoordinateM, PolygonM, MultiPointM } from "./models/shapefile";
 
 export abstract class ShapeFileHelpers {
    private static readonly recordHeaderSize: number = 8;
@@ -23,7 +23,7 @@ export abstract class ShapeFileHelpers {
       try {
          while (byteRead < fileSize) {
             let point: Point | NullShape = ShapeFileHelpers.readNextPointShape(shapeFile, buffer, byteRead, fileSize);
-            shapeFile.ShapeRecords.push(point); 
+            shapeFile.ShapeRecords.push(point);
             byteRead = byteRead + point.contentLength + ShapeFileHelpers.recordHeaderSize;
          }
       }
@@ -154,7 +154,7 @@ export abstract class ShapeFileHelpers {
             if (i == partStartingIndexList[j]) {
                polyLine.parts.push(line);
                line = new Part();
-               j+=1;
+               j += 1;
             }
             let x: number = buffer.readDoubleLE(byteRead);
             byteRead = byteRead + 8;
@@ -217,12 +217,12 @@ export abstract class ShapeFileHelpers {
             byteRead = byteRead + 4;
             partStartingIndexList.push(partStartingIndex);
          }
-         let ring: Part= new Part();
+         let ring: Part = new Part();
          for (var i = 0, j = 1; i < noOfPoints; i++) {
             if (i == partStartingIndexList[j]) {
                polygon.parts.push(ring);
                ring = new Part();
-               j+=1;
+               j += 1;
             }
             let x: number = buffer.readDoubleLE(byteRead);
             byteRead = byteRead + 8;
@@ -235,6 +235,330 @@ export abstract class ShapeFileHelpers {
          }
          return polygon;
       } else {
+         throw new SyntaxError("Invalid shape file");
+      }
+   }
+   private static getPointMShapes(shapeFile: ShapeFile, buffer: Buffer, byteRead: number, fileSize: number) {
+      try {
+         while (byteRead < fileSize) {
+            let point: PointM | NullShape = ShapeFileHelpers.readNextPointMShape(shapeFile, buffer, byteRead, fileSize);
+            shapeFile.ShapeRecords.push(point);
+            byteRead = byteRead + point.contentLength + ShapeFileHelpers.recordHeaderSize;
+         }
+      }
+      catch (error) {
+         throw error;
+      }
+   }
+   private static readNextPointMShape(shapeFile: ShapeFile, buffer: Buffer, byteRead: number, fileSize: number): PointM | NullShape {
+      let recordNumber: number = buffer.readIntBE(byteRead, 4);
+      byteRead = byteRead + 4;
+      let contentLength: number = buffer.readIntBE(byteRead, 4);
+      byteRead = byteRead + 4;
+      let shapeType: number = buffer.readIntLE(byteRead, 4);
+      byteRead = byteRead + 4;
+      if (shapeType == ShapeType.NullShape) {
+         return new NullShape(recordNumber, contentLength, shapeType);
+      } else if (shapeType == ShapeType.PointM) {
+         let x: number = buffer.readDoubleLE(byteRead);
+         byteRead = byteRead + 8;
+         let y: number = buffer.readDoubleLE(byteRead);
+         byteRead = byteRead + 8;
+         let m: number | null = buffer.readDoubleLE(byteRead);
+         byteRead = byteRead + 8;
+         if (m < -10) {
+            m = null;
+         }
+         return new PointM(recordNumber, contentLength, shapeType, x, y, m);
+      }
+      else {
+         throw new SyntaxError("Invalid shape file");
+      }
+   }
+   private static getMultiPointMShapes(shapeFile: ShapeFile, buffer: Buffer, byteRead: number, fileSize: number) {
+      try {
+         while (byteRead < fileSize) {
+            let multiPoint: MultiPointM | NullShape = ShapeFileHelpers.readNextMultiMPointShape(shapeFile, buffer, byteRead, fileSize);
+            shapeFile.ShapeRecords.push(multiPoint);
+            byteRead = byteRead + multiPoint.contentLength + ShapeFileHelpers.recordHeaderSize;
+         }
+      }
+      catch (error) {
+         throw error;
+      }
+   }
+   private static readNextMultiMPointShape(shapeFile: ShapeFile, buffer: Buffer, byteRead: number, fileSize: number): MultiPointM | NullShape {
+      let recordNumber: number = buffer.readIntBE(byteRead, 4);
+      byteRead = byteRead + 4;
+      let contentLength: number = buffer.readIntBE(byteRead, 4);
+      byteRead = byteRead + 4;
+      let shapeType: number = buffer.readIntLE(byteRead, 4);
+      byteRead = byteRead + 4;
+      if (shapeType == ShapeType.NullShape) {
+         return new NullShape(recordNumber, contentLength, shapeType);
+      }
+      else if (shapeType == ShapeType.MultiPointM) {
+         let xmin: number = buffer.readDoubleLE(byteRead);
+         byteRead = byteRead + 8;
+         let ymin: number = buffer.readDoubleLE(byteRead);
+         byteRead = byteRead + 8;
+         let xmax: number = buffer.readDoubleLE(byteRead);
+         byteRead = byteRead + 8;
+         let ymax: number = buffer.readDoubleLE(byteRead);
+         byteRead = byteRead + 8;
+         let box: Array<number> = new Array<number>();
+         box.push(xmin);
+         box.push(ymin);
+         box.push(xmax);
+         box.push(ymax);
+         let noOfPoints: number = buffer.readIntLE(byteRead, 4);
+         byteRead = byteRead + 4;
+
+         let points: Array<Coordinate> = new Array<Coordinate>();
+         for (var i = 0; i < noOfPoints; i++) {
+            let x: number = buffer.readDoubleLE(byteRead);
+            byteRead = byteRead + 8;
+            let y: number = buffer.readDoubleLE(byteRead);
+            byteRead = byteRead + 8;
+            points.push(new Coordinate(x, y));
+         }
+
+         let mMin: number | null = buffer.readDoubleLE(byteRead);
+         byteRead = byteRead + 8;
+         let mMax: number | null = buffer.readDoubleLE(byteRead);
+         byteRead = byteRead + 8;
+         if (mMin < -10) { mMin = null; }
+         if (mMax < -10) { mMax = null; }
+         let pointsM: Array<number> = new Array<number>();
+         for (var i = 0; i < noOfPoints; i++) {
+            let m: number = buffer.readDoubleLE(byteRead);
+            byteRead = byteRead + 8;
+            pointsM.push(m);
+         }
+
+         let multiPoint: MultiPointM = new MultiPointM(recordNumber, contentLength, shapeType, noOfPoints, box, mMin, mMax);
+         for (var i = 0; i < points.length; i++) {
+            multiPoint.coordinatesM.push(new CoordinateM(points[i].x, points[i].y, pointsM[i]));
+         }
+         return multiPoint;
+      } else {
+         throw new SyntaxError("Invalid shape file");
+      }
+   }
+   private static getPolyLineMShapes(shapeFile: ShapeFile, buffer: Buffer, byteRead: number, fileSize: number) {
+      try {
+         while (byteRead < fileSize) {
+            let polyLine: PolyLineM | NullShape = ShapeFileHelpers.readNextPolyLineMShape(shapeFile, buffer, byteRead, fileSize);
+            shapeFile.ShapeRecords.push(polyLine);
+            byteRead = byteRead + polyLine.contentLength + ShapeFileHelpers.recordHeaderSize;
+         }
+      }
+      catch (error) {
+         throw error;
+      }
+   }
+   private static readNextPolyLineMShape(shapeFile: ShapeFile, buffer: Buffer, byteRead: number, fileSize: number): PolyLineM | NullShape {
+      let recordNumber: number = buffer.readIntBE(byteRead, 4);
+      byteRead = byteRead + 4;
+      let contentLength: number = buffer.readIntBE(byteRead, 4);
+      byteRead = byteRead + 4;
+      let shapeType: number = buffer.readIntLE(byteRead, 4);
+      byteRead = byteRead + 4;
+      if (shapeType == ShapeType.NullShape) {
+         return new NullShape(recordNumber, contentLength, shapeType);
+      }
+      else if (shapeType == ShapeType.PolyLineM) {
+         let xmin: number = buffer.readDoubleLE(byteRead);
+         byteRead = byteRead + 8;
+         let ymin: number = buffer.readDoubleLE(byteRead);
+         byteRead = byteRead + 8;
+         let xmax: number = buffer.readDoubleLE(byteRead);
+         byteRead = byteRead + 8;
+         let ymax: number = buffer.readDoubleLE(byteRead);
+         byteRead = byteRead + 8;
+         let box: Array<number> = new Array<number>();
+         box.push(xmin);
+         box.push(ymin);
+         box.push(xmax);
+         box.push(ymax);
+         let noOfParts: number = buffer.readIntLE(byteRead, 4);
+         byteRead = byteRead + 4;
+         let noOfPoints: number = buffer.readIntLE(byteRead, 4);
+         byteRead = byteRead + 4;
+
+
+         let partStartingIndexList: Array<Number> = new Array<Number>();
+         for (var i = 0; i < noOfParts; i++) {
+            let partStartingIndex: number = buffer.readIntLE(byteRead, 4);
+            byteRead = byteRead + 4;
+            partStartingIndexList.push(partStartingIndex);
+         }
+
+         let points: Array<Coordinate> = new Array<Coordinate>();
+         for (var i = 0; i < noOfPoints; i++) {
+            let x: number = buffer.readDoubleLE(byteRead);
+            byteRead = byteRead + 8;
+            let y: number = buffer.readDoubleLE(byteRead);
+            byteRead = byteRead + 8;
+            points.push(new Coordinate(x, y));
+         }
+
+         let mMin: number | null = buffer.readDoubleLE(byteRead);
+         byteRead = byteRead + 8;
+         let mMax: number | null = buffer.readDoubleLE(byteRead);
+         byteRead = byteRead + 8;
+         if (mMin < -10) { mMin = null; }
+         if (mMax < -10) { mMax = null; }
+         let pointsM: Array<number> = new Array<number>();
+         for (var i = 0; i < noOfPoints; i++) {
+            let m: number = buffer.readDoubleLE(byteRead);
+            byteRead = byteRead + 8;
+            pointsM.push(m);
+         }
+         let polyLine: PolyLineM = new PolyLineM(recordNumber, contentLength, shapeType, noOfParts, noOfPoints, box, mMin, mMax);
+
+         let line: PartM = new PartM();
+         for (var i = 0, j = 1; i < points.length; i++) {
+            if (i == partStartingIndexList[j]) {
+               polyLine.parts.push(line);
+               line = new PartM();
+               j += 1;
+            }
+            line.coordinatesM.push(new CoordinateM(points[i].x, points[i].y, pointsM[i]));
+         }
+         if (line) {
+            polyLine.parts.push(line);
+         }
+         return polyLine;
+      } else {
+         throw new SyntaxError("Invalid shape file");
+      }
+   }
+   private static getPolygonMShapes(shapeFile: ShapeFile, buffer: Buffer, byteRead: number, fileSize: number) {
+      try {
+         while (byteRead < fileSize) {
+            let polygon: PolygonM | NullShape = ShapeFileHelpers.readNextPolygonMShape(shapeFile, buffer, byteRead, fileSize);
+            shapeFile.ShapeRecords.push(polygon);
+            byteRead = byteRead + polygon.contentLength + ShapeFileHelpers.recordHeaderSize;
+         }
+      }
+      catch (error) {
+         throw error;
+      }
+   }
+   private static readNextPolygonMShape(shapeFile: ShapeFile, buffer: Buffer, byteRead: number, fileSize: number): PolygonM | NullShape {
+      let recordNumber: number = buffer.readIntBE(byteRead, 4);
+      byteRead = byteRead + 4;
+      let contentLength: number = buffer.readIntBE(byteRead, 4);
+      byteRead = byteRead + 4;
+      let shapeType: number = buffer.readIntLE(byteRead, 4);
+      byteRead = byteRead + 4;
+      if (shapeType == ShapeType.NullShape) {
+         return new NullShape(recordNumber, contentLength, shapeType);
+      }
+      else if (shapeType == ShapeType.PolygonM) {
+         let xmin: number = buffer.readDoubleLE(byteRead);
+         byteRead = byteRead + 8;
+         let ymin: number = buffer.readDoubleLE(byteRead);
+         byteRead = byteRead + 8;
+         let xmax: number = buffer.readDoubleLE(byteRead);
+         byteRead = byteRead + 8;
+         let ymax: number = buffer.readDoubleLE(byteRead);
+         byteRead = byteRead + 8;
+         let box: Array<number> = new Array<number>();
+         box.push(xmin);
+         box.push(ymin);
+         box.push(xmax);
+         box.push(ymax);
+         let noOfParts: number = buffer.readIntLE(byteRead, 4);
+         byteRead = byteRead + 4;
+         let noOfPoints: number = buffer.readIntLE(byteRead, 4);
+         byteRead = byteRead + 4;
+
+
+         let partStartingIndexList: Array<Number> = new Array<Number>();
+         for (var i = 0; i < noOfParts; i++) {
+            let partStartingIndex: number = buffer.readIntLE(byteRead, 4);
+            byteRead = byteRead + 4;
+            partStartingIndexList.push(partStartingIndex);
+         }
+
+         let points: Array<Coordinate> = new Array<Coordinate>();
+         for (var i = 0; i < noOfPoints; i++) {
+            let x: number = buffer.readDoubleLE(byteRead);
+            byteRead = byteRead + 8;
+            let y: number = buffer.readDoubleLE(byteRead);
+            byteRead = byteRead + 8;
+            points.push(new Coordinate(x, y));
+         }
+
+         let mMin: number | null = buffer.readDoubleLE(byteRead);
+         byteRead = byteRead + 8;
+         let mMax: number | null = buffer.readDoubleLE(byteRead);
+         byteRead = byteRead + 8;
+         if (mMin < -10) { mMin = null; }
+         if (mMax < -10) { mMax = null; }
+         let pointsM: Array<number> = new Array<number>();
+         for (var i = 0; i < noOfPoints; i++) {
+            let m: number = buffer.readDoubleLE(byteRead);
+            byteRead = byteRead + 8;
+            pointsM.push(m);
+         }
+         let polygon: PolygonM = new PolygonM(recordNumber, contentLength, shapeType, noOfParts, noOfPoints, box, mMin, mMax);
+
+         let ring: PartM = new PartM();
+         for (var i = 0, j = 1; i < points.length; i++) {
+            if (i == partStartingIndexList[j]) {
+               polygon.parts.push(ring);
+               ring = new PartM();
+               j += 1;
+            }
+            ring.coordinatesM.push(new CoordinateM(points[i].x, points[i].y, pointsM[i]));
+         }
+         if (ring) {
+            polygon.parts.push(ring);
+         }
+         return polygon;
+      } else {
+         throw new SyntaxError("Invalid shape file");
+      }
+   }
+   private static getPointZShapes(shapeFile: ShapeFile, buffer: Buffer, byteRead: number, fileSize: number) {
+      try {
+         while (byteRead < fileSize) {
+            let point: PointZ | NullShape = ShapeFileHelpers.readNextPointZShape(shapeFile, buffer, byteRead, fileSize);
+            shapeFile.ShapeRecords.push(point);
+            byteRead = byteRead + point.contentLength + ShapeFileHelpers.recordHeaderSize;
+         }
+      }
+      catch (error) {
+         throw error;
+      }
+   }
+   private static readNextPointZShape(shapeFile: ShapeFile, buffer: Buffer, byteRead: number, fileSize: number): PointZ | NullShape {
+      let recordNumber: number = buffer.readIntBE(byteRead, 4);
+      byteRead = byteRead + 4;
+      let contentLength: number = buffer.readIntBE(byteRead, 4);
+      byteRead = byteRead + 4;
+      let shapeType: number = buffer.readIntLE(byteRead, 4);
+      byteRead = byteRead + 4;
+      if (shapeType == ShapeType.NullShape) {
+         return new NullShape(recordNumber, contentLength, shapeType);
+      } else if (shapeType == ShapeType.PointZ) {
+         let x: number = buffer.readDoubleLE(byteRead);
+         byteRead = byteRead + 8;
+         let y: number = buffer.readDoubleLE(byteRead);
+         byteRead = byteRead + 8;
+         let z: number = buffer.readDoubleLE(byteRead);
+         byteRead = byteRead + 8;
+         let m: number | null = buffer.readDoubleLE(byteRead);
+         byteRead = byteRead + 8;
+         if (m < -10) {
+            m = null;
+         }
+         return new PointZ(recordNumber, contentLength, shapeType, x, y, z, m);
+      }
+      else {
          throw new SyntaxError("Invalid shape file");
       }
    }
@@ -277,6 +601,21 @@ export abstract class ShapeFileHelpers {
                   break;
                case ShapeType.Polygon:
                   ShapeFileHelpers.getPolygonShapes(shapeFile, shpFileBuffer, byteRead, fileSize)
+                  break;
+               case ShapeType.PointM:
+                  ShapeFileHelpers.getPointMShapes(shapeFile, shpFileBuffer, byteRead, fileSize);
+                  break;
+               case ShapeType.MultiPointM:
+                     ShapeFileHelpers.getMultiPointMShapes(shapeFile, shpFileBuffer, byteRead, fileSize);
+                     break;
+               case ShapeType.PolyLineM:
+                  ShapeFileHelpers.getPolyLineMShapes(shapeFile, shpFileBuffer, byteRead, fileSize);
+                  break;
+               case ShapeType.PolygonM:
+                  ShapeFileHelpers.getPolygonMShapes(shapeFile, shpFileBuffer, byteRead, fileSize);
+                  break;
+               case ShapeType.PointZ:
+                  ShapeFileHelpers.getPointZShapes(shapeFile, shpFileBuffer, byteRead, fileSize);
                   break;
                default:
                   throw new SyntaxError("This shape file contains unsupported geometries.");

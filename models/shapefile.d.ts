@@ -83,8 +83,56 @@ export declare class Polygon extends ShapeRecord {
     getContentSize(): number;
     isValidShape(): boolean;
 }
+export declare class PointM extends ShapeRecord {
+    readonly coordinateM: CoordinateM;
+    constructor(recordNumber: number, contentLength: number, shapeType: number, x: number, y: number, m: number | null);
+    getContentSize(): number;
+    isValidShape(): boolean;
+}
+export declare class MultiPointM extends ShapeRecord {
+    readonly boundingBox: BoundingBox | null;
+    readonly numberOfPoints: number;
+    readonly coordinatesM: Array<CoordinateM>;
+    readonly mMin: number | null;
+    readonly mMax: number | null;
+    constructor(recordNumber: number, contentLength: number, shapeType: number, numberOfPoints: number, boundingBox: number[], mMin: number | null, mMax: number | null);
+    getContentSize(): number;
+    isValidShape(): boolean;
+}
+export declare class PolyLineM extends ShapeRecord {
+    readonly boundingBox: BoundingBox | null;
+    readonly numberOfParts: number;
+    readonly numberOfPoints: number;
+    readonly mMin: number | null;
+    readonly mMax: number | null;
+    readonly parts: Array<PartM>;
+    constructor(recordNumber: number, contentLength: number, shapeType: number, numberOfParts: number, numberOfPoints: number, boundingBox: number[], mMin: number | null, mMax: number | null);
+    getContentSize(): number;
+    isValidShape(): boolean;
+}
+export declare class PolygonM extends ShapeRecord {
+    readonly boundingBox: BoundingBox | null;
+    readonly numberOfParts: number;
+    readonly numberOfPoints: number;
+    readonly mMin: number | null;
+    readonly mMax: number | null;
+    readonly parts: Array<PartM>;
+    constructor(recordNumber: number, contentLength: number, shapeType: number, numberOfParts: number, numberOfPoints: number, boundingBox: number[], mMin: number | null, mMax: number | null);
+    getContentSize(): number;
+    isValidShape(): boolean;
+}
+export declare class PointZ extends ShapeRecord {
+    readonly coordinateZ: CoordinateZ;
+    constructor(recordNumber: number, contentLength: number, shapeType: number, x: number, y: number, z: number, m: number | null);
+    getContentSize(): number;
+    isValidShape(): boolean;
+}
 export declare class Part {
     readonly coordinates: Array<Coordinate>;
+    constructor();
+}
+export declare class PartM {
+    readonly coordinatesM: Array<CoordinateM>;
     constructor();
 }
 export declare class BoundingBox {
@@ -93,9 +141,29 @@ export declare class BoundingBox {
     constructor(southwest: Coordinate, northeast: Coordinate);
 }
 export declare class Coordinate {
-    readonly lat: number;
-    readonly lng: number;
-    constructor(lng: number, lat: number);
+    /**
+    * Latitude Value
+    */
+    readonly x: number;
+    /**
+    * Longitude Value
+    */
+    readonly y: number;
+    constructor(x: number, y: number);
+}
+export declare class CoordinateM extends Coordinate {
+    /**
+    * Routing/Offset  Value
+    */
+    readonly m: number | null;
+    constructor(x: number, y: number, m: number | null);
+}
+export declare class CoordinateZ extends CoordinateM {
+    /**
+    * Elevation/GPS Height   Value
+    */
+    readonly z: number;
+    constructor(x: number, y: number, z: number, m: number | null);
 }
 export declare class Attribute {
     readonly key: string;
@@ -108,5 +176,8 @@ export declare abstract class ShapeFileFieldSize {
     static readonly NumOfPart: number;
     static readonly NumOfPoint: number;
     static readonly point: number;
+    static readonly pointM: number;
+    static readonly pointZ: number;
+    static readonly rangeM: number;
     static readonly part: number;
 }

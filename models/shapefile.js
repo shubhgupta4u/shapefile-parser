@@ -31,8 +31,6 @@ class ShapeFile {
                 isAllShapeRecordValid = false;
             }
         });
-        // console.log("isAllShapeRecordValid :" +isAllShapeRecordValid);
-        // console.log("contentSize :" +contentSize);
         return isAllShapeRecordValid && this.shapeFileHeader && this.shapeFileHeader.fileLength == (contentSize + this.shapeFileHeader.headerSize);
     }
 }
@@ -162,12 +160,120 @@ class Polygon extends ShapeRecord {
     }
 }
 exports.Polygon = Polygon;
+class PointM extends ShapeRecord {
+    constructor(recordNumber, contentLength, shapeType, x, y, m) {
+        super(recordNumber, contentLength, shapeType);
+        this.coordinateM = new CoordinateM(x, y, m);
+    }
+    getContentSize() {
+        return ShapeFileFieldSize.shapeType + ShapeFileFieldSize.pointM;
+    }
+    isValidShape() {
+        return this.contentLength == this.getContentSize();
+    }
+}
+exports.PointM = PointM;
+class MultiPointM extends ShapeRecord {
+    constructor(recordNumber, contentLength, shapeType, numberOfPoints, boundingBox, mMin, mMax) {
+        super(recordNumber, contentLength, shapeType);
+        this.coordinatesM = new Array();
+        this.numberOfPoints = numberOfPoints;
+        this.mMin = mMin;
+        this.mMax = mMax;
+        if (boundingBox && boundingBox.length == 4) {
+            this.boundingBox = new BoundingBox(new Coordinate(boundingBox[0], boundingBox[1]), new Coordinate(boundingBox[2], boundingBox[3]));
+        }
+        else {
+            this.boundingBox = null;
+        }
+    }
+    getContentSize() {
+        return ShapeFileFieldSize.shapeType + ShapeFileFieldSize.boundingBox + ShapeFileFieldSize.NumOfPoint + (this.numberOfPoints * ShapeFileFieldSize.pointM) + ShapeFileFieldSize.rangeM;
+    }
+    isValidShape() {
+        return this.contentLength == this.getContentSize() && this.boundingBox instanceof BoundingBox && (this.numberOfPoints == this.coordinatesM.length);
+    }
+}
+exports.MultiPointM = MultiPointM;
+class PolyLineM extends ShapeRecord {
+    constructor(recordNumber, contentLength, shapeType, numberOfParts, numberOfPoints, boundingBox, mMin, mMax) {
+        super(recordNumber, contentLength, shapeType);
+        this.parts = new Array();
+        this.numberOfParts = numberOfParts;
+        this.numberOfPoints = numberOfPoints;
+        this.mMin = mMin;
+        this.mMax = mMax;
+        if (boundingBox && boundingBox.length == 4) {
+            this.boundingBox = new BoundingBox(new Coordinate(boundingBox[0], boundingBox[1]), new Coordinate(boundingBox[2], boundingBox[3]));
+        }
+        else {
+            this.boundingBox = null;
+        }
+    }
+    getContentSize() {
+        return ShapeFileFieldSize.shapeType + ShapeFileFieldSize.boundingBox + ShapeFileFieldSize.NumOfPart + ShapeFileFieldSize.NumOfPoint + (this.numberOfParts * ShapeFileFieldSize.part) + (this.numberOfPoints * ShapeFileFieldSize.pointM) + ShapeFileFieldSize.rangeM;
+    }
+    isValidShape() {
+        let pointsCount = 0;
+        this.parts.forEach((line) => {
+            pointsCount = pointsCount + line.coordinatesM.length;
+        });
+        return this.contentLength == this.getContentSize() && this.boundingBox instanceof BoundingBox && (this.numberOfParts == this.parts.length) && (this.numberOfPoints == pointsCount);
+    }
+}
+exports.PolyLineM = PolyLineM;
+class PolygonM extends ShapeRecord {
+    constructor(recordNumber, contentLength, shapeType, numberOfParts, numberOfPoints, boundingBox, mMin, mMax) {
+        super(recordNumber, contentLength, shapeType);
+        this.parts = new Array();
+        this.numberOfParts = numberOfParts;
+        this.numberOfPoints = numberOfPoints;
+        this.mMin = mMin;
+        this.mMax = mMax;
+        if (boundingBox && boundingBox.length == 4) {
+            this.boundingBox = new BoundingBox(new Coordinate(boundingBox[0], boundingBox[1]), new Coordinate(boundingBox[2], boundingBox[3]));
+        }
+        else {
+            this.boundingBox = null;
+        }
+    }
+    getContentSize() {
+        return ShapeFileFieldSize.shapeType + ShapeFileFieldSize.boundingBox + ShapeFileFieldSize.NumOfPart + ShapeFileFieldSize.NumOfPoint + (this.numberOfParts * ShapeFileFieldSize.part) + (this.numberOfPoints * ShapeFileFieldSize.pointM) + ShapeFileFieldSize.rangeM;
+    }
+    isValidShape() {
+        let pointsCount = 0;
+        this.parts.forEach((line) => {
+            pointsCount = pointsCount + line.coordinatesM.length;
+        });
+        return this.contentLength == this.getContentSize() && this.boundingBox instanceof BoundingBox && (this.numberOfParts == this.parts.length) && (this.numberOfPoints == pointsCount);
+    }
+}
+exports.PolygonM = PolygonM;
+class PointZ extends ShapeRecord {
+    constructor(recordNumber, contentLength, shapeType, x, y, z, m) {
+        super(recordNumber, contentLength, shapeType);
+        this.coordinateZ = new CoordinateZ(x, y, z, m);
+    }
+    getContentSize() {
+        return ShapeFileFieldSize.shapeType + ShapeFileFieldSize.pointZ;
+    }
+    isValidShape() {
+        return this.contentLength == this.getContentSize();
+    }
+}
+exports.PointZ = PointZ;
 class Part {
     constructor() {
         this.coordinates = new Array();
     }
 }
 exports.Part = Part;
+class PartM {
+    constructor() {
+        this.coordinatesM = new Array();
+    }
+}
+exports.PartM = PartM;
 class BoundingBox {
     constructor(southwest, northeast) {
         this.southwest = southwest;
@@ -176,12 +282,26 @@ class BoundingBox {
 }
 exports.BoundingBox = BoundingBox;
 class Coordinate {
-    constructor(lng, lat) {
-        this.lat = lat;
-        this.lng = lng;
+    constructor(x, y) {
+        this.x = x;
+        this.y = y;
     }
 }
 exports.Coordinate = Coordinate;
+class CoordinateM extends Coordinate {
+    constructor(x, y, m) {
+        super(x, y);
+        this.m = m;
+    }
+}
+exports.CoordinateM = CoordinateM;
+class CoordinateZ extends CoordinateM {
+    constructor(x, y, z, m) {
+        super(x, y, m);
+        this.z = z;
+    }
+}
+exports.CoordinateZ = CoordinateZ;
 class Attribute {
     constructor(key, value) {
         this.key = key;
@@ -196,5 +316,8 @@ ShapeFileFieldSize.shapeType = 4;
 ShapeFileFieldSize.NumOfPart = 4;
 ShapeFileFieldSize.NumOfPoint = 4;
 ShapeFileFieldSize.point = 16;
+ShapeFileFieldSize.pointM = 24;
+ShapeFileFieldSize.pointZ = 32;
+ShapeFileFieldSize.rangeM = 16;
 ShapeFileFieldSize.part = 4;
 exports.ShapeFileFieldSize = ShapeFileFieldSize;

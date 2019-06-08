@@ -23,17 +23,15 @@ export class ShapeFile {
         this.ShapeRecords = new Array<ShapeRecord>();
     }
 
-    isValid():boolean{
-        let contentSize:number = 0;
-        let isAllShapeRecordValid:boolean=true;
-        this.ShapeRecords.forEach((record)=>{
-            contentSize =contentSize + record.getRecordSize();
-            if(!record.isValidShape()){
+    isValid(): boolean {
+        let contentSize: number = 0;
+        let isAllShapeRecordValid: boolean = true;
+        this.ShapeRecords.forEach((record) => {
+            contentSize = contentSize + record.getRecordSize();
+            if (!record.isValidShape()) {
                 isAllShapeRecordValid = false;
             }
         });
-        // console.log("isAllShapeRecordValid :" +isAllShapeRecordValid);
-        // console.log("contentSize :" +contentSize);
         return isAllShapeRecordValid && this.shapeFileHeader && this.shapeFileHeader.fileLength == (contentSize + this.shapeFileHeader.headerSize);
     }
 }
@@ -50,7 +48,7 @@ export class ShapeFileHeader {
     readonly zMax: number;
     readonly mMin: number;
     readonly mMax: number;
-    readonly headerSize:number =100;
+    readonly headerSize: number = 100;
     constructor(fileCode: number, fileLength: number, version: number, shapeType: number, xMin: number, yMin: number, xMax: number, yMax: number, zMin: number, zMax: number, mMin: number, mMax: number) {
         this.fileCode = fileCode;
         this.fileLength = fileLength * 2;
@@ -66,10 +64,10 @@ export class ShapeFileHeader {
         this.mMax = mMax;
     }
 }
-export abstract class ShapeRecord {   
+export abstract class ShapeRecord {
     readonly recordNumber: number;
     readonly contentLength: number;
-    readonly attributes:Array<Attribute>;
+    readonly attributes: Array<Attribute>;
     readonly shapeType: ShapeType;
     constructor(recordNumber: number, contentLength: number, shapeType: number) {
         this.recordNumber = recordNumber;
@@ -77,20 +75,20 @@ export abstract class ShapeRecord {
         this.shapeType = shapeType;
         this.attributes = new Array<Attribute>();
     }
-    getRecordSize():number{
+    getRecordSize(): number {
         return 8 + this.getContentSize();
     }
-    abstract getContentSize():number;
-    abstract isValidShape():boolean;
+    abstract getContentSize(): number;
+    abstract isValidShape(): boolean;
 }
 export class NullShape extends ShapeRecord {
     constructor(recordNumber: number, contentLength: number, shapeType: number) {
         super(recordNumber, contentLength, shapeType);
     }
-    getContentSize():number{
+    getContentSize(): number {
         return ShapeFileFieldSize.shapeType;
     }
-    isValidShape(){
+    isValidShape() {
         return this.contentLength == this.getContentSize();
     }
 }
@@ -100,114 +98,265 @@ export class Point extends ShapeRecord {
         super(recordNumber, contentLength, shapeType);
         this.coordinate = new Coordinate(x, y);
     }
-    getContentSize():number{
+    getContentSize(): number {
         return ShapeFileFieldSize.shapeType + ShapeFileFieldSize.point;
     }
-    isValidShape():boolean{
+    isValidShape(): boolean {
         return this.contentLength == this.getContentSize();
     }
 }
 export class MultiPoint extends ShapeRecord {
-    readonly boundingBox:BoundingBox|null;
-    readonly numberOfPoints:number;
+    readonly boundingBox: BoundingBox | null;
+    readonly numberOfPoints: number;
     readonly coordinates: Array<Coordinate>;
-   
-    constructor(recordNumber: number, contentLength: number, shapeType: number, numberOfPoints:number, boundingBox:number[]) {
+
+    constructor(recordNumber: number, contentLength: number, shapeType: number, numberOfPoints: number, boundingBox: number[]) {
         super(recordNumber, contentLength, shapeType);
         this.coordinates = new Array<Coordinate>();
         this.numberOfPoints = numberOfPoints;
-        if(boundingBox && boundingBox.length == 4){
-            this.boundingBox = new BoundingBox(new Coordinate(boundingBox[0],boundingBox[1]), new Coordinate(boundingBox[2],boundingBox[3]));
-        }   
-        else{
+        if (boundingBox && boundingBox.length == 4) {
+            this.boundingBox = new BoundingBox(new Coordinate(boundingBox[0], boundingBox[1]), new Coordinate(boundingBox[2], boundingBox[3]));
+        }
+        else {
             this.boundingBox = null;
-        }     
+        }
     }
-    getContentSize():number{
+    getContentSize(): number {
         return ShapeFileFieldSize.shapeType + ShapeFileFieldSize.boundingBox + ShapeFileFieldSize.NumOfPoint + (this.numberOfPoints * ShapeFileFieldSize.point);
     }
-    isValidShape():boolean{
+    isValidShape(): boolean {
         return this.contentLength == this.getContentSize() && this.boundingBox instanceof BoundingBox && (this.numberOfPoints == this.coordinates.length);
     }
 }
 export class PolyLine extends ShapeRecord {
-    readonly boundingBox:BoundingBox|null;
-    readonly numberOfParts:number;
-    readonly numberOfPoints:number;
+    readonly boundingBox: BoundingBox | null;
+    readonly numberOfParts: number;
+    readonly numberOfPoints: number;
     readonly parts: Array<Part>;
-   
-    constructor(recordNumber: number, contentLength: number, shapeType: number, numberOfParts:number, numberOfPoints:number, boundingBox:number[]) {
+
+    constructor(recordNumber: number, contentLength: number, shapeType: number, numberOfParts: number, numberOfPoints: number, boundingBox: number[]) {
         super(recordNumber, contentLength, shapeType);
         this.parts = new Array<Part>();
         this.numberOfParts = numberOfParts;
         this.numberOfPoints = numberOfPoints;
-        if(boundingBox && boundingBox.length == 4){
-            this.boundingBox = new BoundingBox(new Coordinate(boundingBox[0],boundingBox[1]), new Coordinate(boundingBox[2],boundingBox[3]));
-        }    
-        else{
+        if (boundingBox && boundingBox.length == 4) {
+            this.boundingBox = new BoundingBox(new Coordinate(boundingBox[0], boundingBox[1]), new Coordinate(boundingBox[2], boundingBox[3]));
+        }
+        else {
             this.boundingBox = null;
-        }       
+        }
     }
-    getContentSize():number{
+    getContentSize(): number {
         return ShapeFileFieldSize.shapeType + ShapeFileFieldSize.boundingBox + ShapeFileFieldSize.NumOfPart + ShapeFileFieldSize.NumOfPoint + (this.numberOfParts * ShapeFileFieldSize.part) + (this.numberOfPoints * ShapeFileFieldSize.point);
     }
-    isValidShape():boolean{
-        let pointsCount:number = 0;
-        this.parts.forEach((line)=>{
-            pointsCount=pointsCount + line.coordinates.length;
+    isValidShape(): boolean {
+        let pointsCount: number = 0;
+        this.parts.forEach((line) => {
+            pointsCount = pointsCount + line.coordinates.length;
         })
         return this.contentLength == this.getContentSize() && this.boundingBox instanceof BoundingBox && (this.numberOfParts == this.parts.length) && (this.numberOfPoints == pointsCount);
     }
 }
 export class Polygon extends ShapeRecord {
-    readonly boundingBox:BoundingBox|null;
-    readonly numberOfParts:number;
-    readonly numberOfPoints:number;
+    readonly boundingBox: BoundingBox | null;
+    readonly numberOfParts: number;
+    readonly numberOfPoints: number;
     readonly parts: Array<Part>;
-   
-    constructor(recordNumber: number, contentLength: number, shapeType: number, numberOfParts:number, numberOfPoints:number, boundingBox:number[]) {
+
+    constructor(recordNumber: number, contentLength: number, shapeType: number, numberOfParts: number, numberOfPoints: number, boundingBox: number[]) {
         super(recordNumber, contentLength, shapeType);
         this.parts = new Array<Part>();
         this.numberOfParts = numberOfParts;
         this.numberOfPoints = numberOfPoints;
-        if(boundingBox && boundingBox.length == 4){
-            this.boundingBox = new BoundingBox(new Coordinate(boundingBox[0],boundingBox[1]), new Coordinate(boundingBox[2],boundingBox[3]));
-        }   
-        else{
+        if (boundingBox && boundingBox.length == 4) {
+            this.boundingBox = new BoundingBox(new Coordinate(boundingBox[0], boundingBox[1]), new Coordinate(boundingBox[2], boundingBox[3]));
+        }
+        else {
             this.boundingBox = null;
-        }     
+        }
     }
-    getContentSize():number{
+    getContentSize(): number {
         return ShapeFileFieldSize.shapeType + ShapeFileFieldSize.boundingBox + ShapeFileFieldSize.NumOfPart + ShapeFileFieldSize.NumOfPoint + (this.numberOfParts * ShapeFileFieldSize.part) + (this.numberOfPoints * ShapeFileFieldSize.point);
     }
-    isValidShape():boolean{
-        let pointsCount:number = 0;
-        this.parts.forEach((line)=>{
-            pointsCount=pointsCount + line.coordinates.length;
+    isValidShape(): boolean {
+        let pointsCount: number = 0;
+        this.parts.forEach((line) => {
+            pointsCount = pointsCount + line.coordinates.length;
         })
         return this.contentLength == this.getContentSize() && this.boundingBox instanceof BoundingBox && (this.numberOfParts == this.parts.length) && (this.numberOfPoints == pointsCount);
     }
 }
-export class Part{
+export class PointM extends ShapeRecord {
+    readonly coordinateM: CoordinateM;
+    constructor(recordNumber: number, contentLength: number, shapeType: number, x: number, y: number, m: number | null) {
+        super(recordNumber, contentLength, shapeType);
+        this.coordinateM = new CoordinateM(x, y, m);
+    }
+    getContentSize(): number {
+        return ShapeFileFieldSize.shapeType + ShapeFileFieldSize.pointM;
+    }
+    isValidShape(): boolean {
+        return this.contentLength == this.getContentSize();
+    }
+}
+export class MultiPointM extends ShapeRecord {
+    readonly boundingBox: BoundingBox | null;
+    readonly numberOfPoints: number;
+    readonly coordinatesM: Array<CoordinateM>;
+    readonly mMin: number | null;
+    readonly mMax: number | null;
+
+    constructor(recordNumber: number, contentLength: number, shapeType: number, numberOfPoints: number, boundingBox: number[], mMin: number | null, mMax: number | null) {
+        super(recordNumber, contentLength, shapeType);
+        this.coordinatesM = new Array<CoordinateM>();
+        this.numberOfPoints = numberOfPoints;
+        this.mMin = mMin;
+        this.mMax = mMax;
+        if (boundingBox && boundingBox.length == 4) {
+            this.boundingBox = new BoundingBox(new Coordinate(boundingBox[0], boundingBox[1]), new Coordinate(boundingBox[2], boundingBox[3]));
+        }
+        else {
+            this.boundingBox = null;
+        }
+    }
+    getContentSize(): number {
+        return ShapeFileFieldSize.shapeType + ShapeFileFieldSize.boundingBox + ShapeFileFieldSize.NumOfPoint + (this.numberOfPoints * ShapeFileFieldSize.pointM) + ShapeFileFieldSize.rangeM;
+    }
+    isValidShape(): boolean {
+        return this.contentLength == this.getContentSize() && this.boundingBox instanceof BoundingBox && (this.numberOfPoints == this.coordinatesM.length);
+    }
+}
+export class PolyLineM extends ShapeRecord {
+    readonly boundingBox: BoundingBox | null;
+    readonly numberOfParts: number;
+    readonly numberOfPoints: number;
+    readonly mMin: number | null;
+    readonly mMax: number | null;
+    readonly parts: Array<PartM>;
+
+    constructor(recordNumber: number, contentLength: number, shapeType: number, numberOfParts: number, numberOfPoints: number, boundingBox: number[], mMin: number | null, mMax: number | null) {
+        super(recordNumber, contentLength, shapeType);
+        this.parts = new Array<PartM>();
+        this.numberOfParts = numberOfParts;
+        this.numberOfPoints = numberOfPoints;
+        this.mMin = mMin;
+        this.mMax = mMax;
+        if (boundingBox && boundingBox.length == 4) {
+            this.boundingBox = new BoundingBox(new Coordinate(boundingBox[0], boundingBox[1]), new Coordinate(boundingBox[2], boundingBox[3]));
+        }
+        else {
+            this.boundingBox = null;
+        }
+    }
+    getContentSize(): number {
+        return ShapeFileFieldSize.shapeType + ShapeFileFieldSize.boundingBox + ShapeFileFieldSize.NumOfPart + ShapeFileFieldSize.NumOfPoint + (this.numberOfParts * ShapeFileFieldSize.part) + (this.numberOfPoints * ShapeFileFieldSize.pointM) + ShapeFileFieldSize.rangeM;
+    }
+    isValidShape(): boolean {
+        let pointsCount: number = 0;
+        this.parts.forEach((line) => {
+            pointsCount = pointsCount + line.coordinatesM.length;
+        })
+        return this.contentLength == this.getContentSize() && this.boundingBox instanceof BoundingBox && (this.numberOfParts == this.parts.length) && (this.numberOfPoints == pointsCount);
+    }
+}
+export class PolygonM extends ShapeRecord {
+    readonly boundingBox: BoundingBox | null;
+    readonly numberOfParts: number;
+    readonly numberOfPoints: number;
+    readonly mMin: number | null;
+    readonly mMax: number | null;
+    readonly parts: Array<PartM>;
+
+    constructor(recordNumber: number, contentLength: number, shapeType: number, numberOfParts: number, numberOfPoints: number, boundingBox: number[], mMin: number | null, mMax: number | null) {
+        super(recordNumber, contentLength, shapeType);
+        this.parts = new Array<PartM>();
+        this.numberOfParts = numberOfParts;
+        this.numberOfPoints = numberOfPoints;
+        this.mMin = mMin;
+        this.mMax = mMax;
+        if (boundingBox && boundingBox.length == 4) {
+            this.boundingBox = new BoundingBox(new Coordinate(boundingBox[0], boundingBox[1]), new Coordinate(boundingBox[2], boundingBox[3]));
+        }
+        else {
+            this.boundingBox = null;
+        }
+    }
+    getContentSize(): number {
+        return ShapeFileFieldSize.shapeType + ShapeFileFieldSize.boundingBox + ShapeFileFieldSize.NumOfPart + ShapeFileFieldSize.NumOfPoint + (this.numberOfParts * ShapeFileFieldSize.part) + (this.numberOfPoints * ShapeFileFieldSize.pointM) + ShapeFileFieldSize.rangeM;
+    }
+    isValidShape(): boolean {
+        let pointsCount: number = 0;
+        this.parts.forEach((line) => {
+            pointsCount = pointsCount + line.coordinatesM.length;
+        })
+        return this.contentLength == this.getContentSize() && this.boundingBox instanceof BoundingBox && (this.numberOfParts == this.parts.length) && (this.numberOfPoints == pointsCount);
+    }
+}
+export class PointZ extends ShapeRecord {
+    readonly coordinateZ: CoordinateZ;
+    constructor(recordNumber: number, contentLength: number, shapeType: number, x: number, y: number, z: number, m: number | null) {
+        super(recordNumber, contentLength, shapeType);
+        this.coordinateZ = new CoordinateZ(x, y, z, m);
+    }
+    getContentSize(): number {
+        return ShapeFileFieldSize.shapeType + ShapeFileFieldSize.pointZ;
+    }
+    isValidShape(): boolean {
+        return this.contentLength == this.getContentSize();
+    }
+}
+export class Part {
     readonly coordinates: Array<Coordinate>;
-    constructor(){
+    constructor() {
         this.coordinates = new Array<Coordinate>();
     }
 }
-export class BoundingBox{
-    southwest:Coordinate;
-    northeast:Coordinate;
-    constructor(southwest:Coordinate, northeast:Coordinate){
+export class PartM {
+    readonly coordinatesM: Array<CoordinateM>;
+    constructor() {
+        this.coordinatesM = new Array<CoordinateM>();
+    }
+}
+export class BoundingBox {
+    southwest: Coordinate;
+    northeast: Coordinate;
+    constructor(southwest: Coordinate, northeast: Coordinate) {
         this.southwest = southwest;
-        this.northeast=northeast;
+        this.northeast = northeast;
     }
 }
 export class Coordinate {
-    public readonly lat: number;
-    public readonly lng: number;
-    constructor(lng: number,lat: number) {
-        this.lat = lat;
-        this.lng = lng;
+    /**
+    * Latitude Value
+    */
+    public readonly x: number;
+    /**
+    * Longitude Value
+    */
+    public readonly y: number;
+    constructor(x: number, y: number) {
+        this.x = x;
+        this.y = y;
+    }
+}
+export class CoordinateM extends Coordinate {
+    /**
+    * Routing/Offset  Value
+    */
+    public readonly m: number | null;
+    constructor(x: number, y: number, m: number | null) {
+        super(x, y);
+        this.m = m;
+    }
+}
+export class CoordinateZ extends CoordinateM {
+    /**
+    * Elevation/GPS Height   Value
+    */
+    public readonly z: number;
+    constructor(x: number, y: number, z: number, m: number | null) {
+        super(x, y, m);
+        this.z = z;
     }
 }
 export class Attribute {
@@ -218,11 +367,14 @@ export class Attribute {
         this.value = value;
     }
 }
-export abstract class ShapeFileFieldSize{
-    public static readonly boundingBox:number=32;
-    public static readonly shapeType:number=4;
-    public static readonly NumOfPart:number=4;
-    public static readonly NumOfPoint:number=4;
-    public static readonly point:number=16;
-    public static readonly part:number=4;
+export abstract class ShapeFileFieldSize {
+    public static readonly boundingBox: number = 32;
+    public static readonly shapeType: number = 4;
+    public static readonly NumOfPart: number = 4;
+    public static readonly NumOfPoint: number = 4;
+    public static readonly point: number = 16;
+    public static readonly pointM: number = 24;
+    public static readonly pointZ: number = 32;
+    public static readonly rangeM: number = 16;
+    public static readonly part: number = 4;
 }

@@ -11,6 +11,16 @@ export declare abstract class ShapeFileHelpers {
     private static readNextPolyLineShape;
     private static getPolygonShapes;
     private static readNextPolygonShape;
+    private static getPointMShapes;
+    private static readNextPointMShape;
+    private static getMultiPointMShapes;
+    private static readNextMultiMPointShape;
+    private static getPolyLineMShapes;
+    private static readNextPolyLineMShape;
+    private static getPolygonMShapes;
+    private static readNextPolygonMShape;
+    private static getPointZShapes;
+    private static readNextPointZShape;
     private static getShapeFileHeader;
     protected static parse(shpFileBuffer: Buffer): any;
 }
