@@ -1,5 +1,6 @@
 .vscode/
 .nyc_output/
+coverage/
 lib/
 tests/
 package-lock.json
