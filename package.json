@@ -1,6 +1,6 @@
 {
   "name": "shapefile-parser",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A Node.js/Typescript module to parse geometries data from the (*.shp) Shape file.",
   "main": "shapefile-parser.js",
   "types": "shapefile-parser.d.ts",
