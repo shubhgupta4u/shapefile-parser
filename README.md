@@ -6,6 +6,23 @@ npm install shapefile-parser --save
 yarn add shapefile-parser
 bower install shapefile-parser --save
 ```
+## Supported Geometry Shape
+```Shape Type
+NullShape: Supported
+Point: Supported
+PolyLine: Supported
+Polygon: Supported
+MultiPoint: Supported
+PointZ: Not Supported
+PolyLineZ: Not Supported
+PolygonZ: Not Supported
+MultiPointZ: Not Supported
+PointM: Not Supported
+PolyLineM: Not Supported
+PolygonM: Not Supported
+MultiPointM: Not Supported
+MultiPatch: Not Supported
+```
 ## Usage 
 ### TypeScript
 #### Case 1:Reading shape file from local path 'D:\Workspace\tests\sampleShpFiles\sample2-line.shp'
