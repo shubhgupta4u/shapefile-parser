@@ -8,11 +8,12 @@ bower install shapefile-parser --save
 ```
 ## Usage 
 ### TypeScript
-### Case 1:Reading shape file from local path 'D:\Workspace\tests\sampleShpFiles\sample2-line.shp'
+#### Case 1:Reading shape file from local path 'D:\Workspace\tests\sampleShpFiles\sample2-line.shp'
 ```typescript
 import {ShapeFileParser} from 'shapefile-parser';
 import { ShapeFile } from 'shapefile-parser/models/shapefile';
 import * as fs from "fs";
+
 let buffer:Buffer=fs.readFileSync('/Workspace/tests/sampleShpFiles/sample2-line.shp')
 let shapeFile:ShapeFile = ShapeFileParser.parse(buffer);
 if(shapeFile.isValid()){
@@ -23,7 +24,7 @@ if(shapeFile.isValid()){
 ```sh
 Output should be an instance of ShapeFile class
 ```
-### Case 2:Reading shape file from 'File' input HtmlElement
+#### Case 2:Reading shape file from 'File' input HtmlElement
 ```html
 <input type="file" id="avatar" (change)="onFileChange($event)" #fileInput>
 ```
@@ -31,6 +32,7 @@ Output should be an instance of ShapeFile class
 import {ShapeFileParser} from 'shapefile-parser';
 import { ShapeFile } from 'shapefile-parser/models/shapefile';
 import * as fs from "fs";
+
 onFileChange(event) {
     let reader = new FileReader();
     if (event.target.files && event.target.files.length > 0) {
@@ -54,10 +56,11 @@ onFileChange(event) {
 Output should be an instance of ShapeFile class
 ```
 ### Javascript
-### Case 1:Reading shape file from local path 'D:\Workspace\tests\sampleShpFiles\sample2-line.shp'
+#### Case 1:Reading shape file from local path 'D:\Workspace\tests\sampleShpFiles\sample2-line.shp'
 ```javascript
 var shapeFileParser = require('shapefile-parser');
 var fs = require('fs');
+
 var buffer:Buffer=fs.readFileSync('/Workspace/tests/sampleShpFiles/sample2-line.shp')
 var shapeFile:ShapeFile = shapeFileParser.parse(buffer);
 if(shapeFile.isValid()){
@@ -65,7 +68,7 @@ if(shapeFile.isValid()){
     console.log(shapeFile.ShapeRecords);
 }
 ```
-### Case 2:Reading shape file from 'File' input HtmlElement
+#### Case 2:Reading shape file from 'File' input HtmlElement
 ```html
 <input type="file" id="avatar" (change)="onFileChange($event)" #fileInput>
 ```
