@@ -14,7 +14,7 @@ import {ShapeFileParser} from 'shapefile-parser';
 import { ShapeFile } from 'shapefile-parser/models/shapefile';
 
 let shapeFile:ShapeFile = ShapeFileParser.parse(shpBuffer);
-let shapeFileWithAttributes:ShapeFile = ShapeFileParser.parse(shpBuffer, dbfBuffer);
+let shapeFileWithAttributes:ShapeFile = ShapeFileParser.parseShpAndDbf(shpBuffer, dbfBuffer);
 ```
 ```sh
 Output should be an instance of ShapeFile class
