@@ -1,4 +1,5 @@
 /// <reference types="node" />
+import { ShapeFile } from "./models/shapefile";
 export declare abstract class ShapeFileHelpers {
     private static readonly recordHeaderSize;
     private static getNullShapes;
@@ -22,5 +23,6 @@ export declare abstract class ShapeFileHelpers {
     private static getPointZShapes;
     private static readNextPointZShape;
     private static getShapeFileHeader;
+    protected static parseShpAndDbf(shpFileBuffer: Buffer, dbfFileBuffer: Buffer): ShapeFile;
     protected static parse(shpFileBuffer: Buffer): any;
 }

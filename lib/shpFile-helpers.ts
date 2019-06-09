@@ -1,4 +1,6 @@
-import { ShapeFileHeader, ShapeType, ShapeFile, Point, MultiPoint, Coordinate, PolyLine, Polygon, Part, NullShape, PointM, PointZ, PolyLineM, PartM, CoordinateM, PolygonM, MultiPointM } from "./models/shapefile";
+import { ShapeFileHeader, ShapeType, ShapeFile, Point, MultiPoint, Coordinate, PolyLine, Polygon, Part, NullShape, PointM, PointZ, PolyLineM, PartM, CoordinateM, PolygonM, MultiPointM, ShapeRecord, Attribute } from "./models/shapefile";
+import { DataTable } from "dbf-reader/models/dbf-file";
+import { Dbf } from "dbf-reader/dbf";
 
 export abstract class ShapeFileHelpers {
    private static readonly recordHeaderSize: number = 8;
@@ -577,6 +579,28 @@ export abstract class ShapeFileHelpers {
       let mMax: number = buffer.readDoubleLE(92); mMin
       return new ShapeFileHeader(fileCode, fileLength, version, shapeType, xMin, yMin, xMax, yMax, zMin, zMax, mMin, mMax);
    }
+   protected static parseShpAndDbf(shpFileBuffer: Buffer, dbfFileBuffer: Buffer):ShapeFile{
+      try{
+         let shapeFile:ShapeFile= ShapeFileHelpers.parse(shpFileBuffer);
+         let dbfFile:DataTable=Dbf.read(dbfFileBuffer);
+         if(shapeFile && shapeFile.ShapeRecords && shapeFile.ShapeRecords.length > 0
+            && dbfFile && dbfFile.columns.length > 0 && dbfFile.rows.length>0){
+               let index:number=0;
+               shapeFile.ShapeRecords.forEach((record:ShapeRecord)=>{
+                  let row:any=dbfFile.rows[index];
+                  dbfFile.columns.forEach((c)=>{
+                     record.attributes.push(new Attribute(c.name,row[c.name]));
+                  });  
+                  index+=1;                
+               });
+         }
+         return shapeFile;
+      }
+      catch(error){
+         throw error;
+      }
+      
+   }
    protected static parse(shpFileBuffer: Buffer): any {
       {
          try {
@@ -606,8 +630,8 @@ export abstract class ShapeFileHelpers {
                   ShapeFileHelpers.getPointMShapes(shapeFile, shpFileBuffer, byteRead, fileSize);
                   break;
                case ShapeType.MultiPointM:
-                     ShapeFileHelpers.getMultiPointMShapes(shapeFile, shpFileBuffer, byteRead, fileSize);
-                     break;
+                  ShapeFileHelpers.getMultiPointMShapes(shapeFile, shpFileBuffer, byteRead, fileSize);
+                  break;
                case ShapeType.PolyLineM:
                   ShapeFileHelpers.getPolyLineMShapes(shapeFile, shpFileBuffer, byteRead, fileSize);
                   break;
@@ -620,7 +644,6 @@ export abstract class ShapeFileHelpers {
                default:
                   throw new SyntaxError("This shape file contains unsupported geometries.");
             }
-            // console.log(shapeFile);
             return shapeFile;
          } catch (error) {
             throw error;

@@ -1,5 +1,5 @@
 # shapefile-parser
-A Node.js/Typescript module to parse geometries data from the (*.shp) Shape file.
+A Node.js/Typescript module to parse geometries data from the (*.shp) Shape and (*.dbf) dBase files.
 ## Installation 
 ```sh
 npm install shapefile-parser --save
@@ -8,7 +8,18 @@ bower install shapefile-parser --save
 ```
 ## Usage 
 ### TypeScript
-#### Case 1:Reading shape file from local path 'D:\Workspace\tests\sampleShpFiles\sample2-line.shp'
+#### Methods for parsing geometries data from the shape Files
+```typescript
+import {ShapeFileParser} from 'shapefile-parser';
+import { ShapeFile } from 'shapefile-parser/models/shapefile';
+
+let shapeFile:ShapeFile = ShapeFileParser.parse(shpBuffer);
+let shapeFileWithAttributes:ShapeFile = ShapeFileParser.parse(shpBuffer, dbfBuffer);
+```
+```sh
+Output should be an instance of ShapeFile class
+```
+#### Example 1:Reading shape file from local path 'D:\Workspace\tests\sampleShpFiles\sample2-line.shp'
 ```typescript
 import {ShapeFileParser} from 'shapefile-parser';
 import { ShapeFile } from 'shapefile-parser/models/shapefile';
@@ -21,10 +32,7 @@ if(shapeFile.isValid()){
     console.log(shapeFile.ShapeRecords);
 }
 ```
-```sh
-Output should be an instance of ShapeFile class
-```
-#### Case 2:Reading shape file from 'File' input HtmlElement
+#### Example 2:Reading shape file from 'File' input HtmlElement
 ```html
 <input type="file" id="avatar" (change)="onFileChange($event)" #fileInput>
 ```
@@ -52,11 +60,8 @@ onFileChange(event) {
     }
   }
 ```
-```sh
-Output should be an instance of ShapeFile class
-```
 ### Javascript
-#### Case 1:Reading shape file from local path 'D:\Workspace\tests\sampleShpFiles\sample2-line.shp'
+#### Example 1:Reading shape file from local path 'D:\Workspace\tests\sampleShpFiles\sample2-line.shp'
 ```javascript
 var shapeFileParser = require('shapefile-parser');
 var fs = require('fs');
@@ -68,7 +73,7 @@ if(shapeFile.isValid()){
     console.log(shapeFile.ShapeRecords);
 }
 ```
-#### Case 2:Reading shape file from 'File' input HtmlElement
+#### Exmaple 2:Reading shape file from 'File' input HtmlElement
 ```html
 <input type="file" id="avatar" (change)="onFileChange($event)" #fileInput>
 ```
@@ -95,9 +100,6 @@ function onFileChange(event) {
   }
 
 ```
-```sh
-Output should be an instance of ShapeFile class
-```
 ### AMD
 ```javascript
 define(function(require,exports,module){
@@ -108,7 +110,7 @@ define(function(require,exports,module){
 #### ShapeFile Extension
 ```ShapeFile Extension
 *.shp: Supported
-*.dbf: Not Supported
+*.dbf: Supported
 *.prj: Not Supported
 *.shx: Not Required, as reading geometries sequentially
 ```

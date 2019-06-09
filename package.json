@@ -1,7 +1,7 @@
 {
   "name": "shapefile-parser",
-  "version": "1.0.1",
-  "description": "A Node.js/Typescript module to parse geometries data from the (*.shp) Shape file.",
+  "version": "1.0.2",
+  "description": "A Node.js/Typescript module to parse geometries data from the (*.shp) Shape and (*.dbf) dBase files.",
   "main": "shapefile-parser.js",
   "types": "shapefile-parser.d.ts",
   "scripts": {
@@ -16,7 +16,8 @@
   "keywords": [
     "Shape File",
     ".shp",
-    ".dbf"
+    ".dbf",
+    "dBase"
   ],
   "author": "Shubh Gupta <shubhgupta4u@gmail.com> (https://uk.linkedin.com/in/shubh-gupta-63607313)",
   "license": "MIT",
@@ -33,5 +34,7 @@
     "ts-node": "^8.2.0",
     "typescript": "^3.5.1"
   },
-  "dependencies": {}
+  "dependencies": {
+    "dbf-reader": "^1.0.2"
+  }
 }

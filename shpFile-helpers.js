@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const shapefile_1 = require("./models/shapefile");
+const dbf_1 = require("dbf-reader/dbf");
 class ShapeFileHelpers {
     static getNullShapes(shapeFile, buffer, byteRead, fileSize) {
         while (byteRead < fileSize) {
@@ -586,6 +587,27 @@ class ShapeFileHelpers {
         mMin;
         return new shapefile_1.ShapeFileHeader(fileCode, fileLength, version, shapeType, xMin, yMin, xMax, yMax, zMin, zMax, mMin, mMax);
     }
+    static parseShpAndDbf(shpFileBuffer, dbfFileBuffer) {
+        try {
+            let shapeFile = ShapeFileHelpers.parse(shpFileBuffer);
+            let dbfFile = dbf_1.Dbf.read(dbfFileBuffer);
+            if (shapeFile && shapeFile.ShapeRecords && shapeFile.ShapeRecords.length > 0
+                && dbfFile && dbfFile.columns.length > 0 && dbfFile.rows.length > 0) {
+                let index = 0;
+                shapeFile.ShapeRecords.forEach((record) => {
+                    let row = dbfFile.rows[index];
+                    dbfFile.columns.forEach((c) => {
+                        record.attributes.push(new shapefile_1.Attribute(c.name, row[c.name]));
+                    });
+                    index += 1;
+                });
+            }
+            return shapeFile;
+        }
+        catch (error) {
+            throw error;
+        }
+    }
     static parse(shpFileBuffer) {
         {
             try {
@@ -628,7 +650,6 @@ class ShapeFileHelpers {
                     default:
                         throw new SyntaxError("This shape file contains unsupported geometries.");
                 }
-                // console.log(shapeFile);
                 return shapeFile;
             }
             catch (error) {
